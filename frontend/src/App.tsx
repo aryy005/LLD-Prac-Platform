@@ -24,7 +24,9 @@ export const App: React.FC = () => {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isRubricModalOpen, setIsRubricModalOpen] = useState(false);
 
-  const feedbackRef = useRef<HTMLDivElement>(null);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  const latestStudioDataRef = useRef<StarterTemplate | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -68,6 +70,26 @@ export const App: React.FC = () => {
     }
   };
 
+  const handlePrevProblem = () => {
+    if (!selectedProblem || problems.length === 0) return;
+    const currentIndex = problems.findIndex((p) => p.id === selectedProblem.id);
+    const prevIndex = (currentIndex - 1 + problems.length) % problems.length;
+    handleSelectProblem(problems[prevIndex]);
+  };
+
+  const handleNextProblem = () => {
+    if (!selectedProblem || problems.length === 0) return;
+    const currentIndex = problems.findIndex((p) => p.id === selectedProblem.id);
+    const nextIndex = (currentIndex + 1) % problems.length;
+    handleSelectProblem(problems[nextIndex]);
+  };
+
+  const handleRandomProblem = () => {
+    if (problems.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * problems.length);
+    handleSelectProblem(problems[randomIndex]);
+  };
+
   const handleStartNewIteration = async () => {
     if (!selectedProblem) return;
     try {
@@ -79,8 +101,6 @@ export const App: React.FC = () => {
 
       const history = await api.getAttemptHistory(selectedProblem.id);
       setAttemptsHistory(history);
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       setErrorMessage("Failed to start new attempt iteration.");
     } finally {
@@ -88,24 +108,28 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (payload: StarterTemplate) => {
+  const handleSubmit = async (payload?: StarterTemplate) => {
     if (!activeAttempt || !selectedProblem) return;
+
+    // Use passed payload or fall back to template
+    const finalPayload = payload || latestStudioDataRef.current || {
+      requirementsAndAssumptions: selectedProblem.starterTemplate.requirementsAndAssumptions,
+      entitiesAndInterfaces: selectedProblem.starterTemplate.entitiesAndInterfaces,
+      patternsAndTradeoffs: selectedProblem.starterTemplate.patternsAndTradeoffs,
+      diagramOrCode: selectedProblem.starterTemplate.diagramOrCode
+    };
 
     try {
       setIsSubmitting(true);
       setSubmissionState("EVALUATING");
       setErrorMessage(null);
 
-      const submission = await api.submitSolution(activeAttempt.id, payload);
+      const submission = await api.submitSolution(activeAttempt.id, finalPayload);
       setActiveSubmission(submission);
       setSubmissionState("SUCCESS");
 
       const history = await api.getAttemptHistory(selectedProblem.id);
       setAttemptsHistory(history);
-
-      setTimeout(() => {
-        feedbackRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 250);
     } catch (err: any) {
       setSubmissionState("ERROR");
       setErrorMessage(err.message || "Evaluation failed.");
@@ -123,18 +147,38 @@ export const App: React.FC = () => {
     }
   };
 
+  // Shortcut key handling: Ctrl + Enter / Cmd + Enter to submit
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleSubmit();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeAttempt, selectedProblem]);
+
   if (isLoading && problems.length === 0) {
     return (
-      <div className="min-h-screen bg-nexcent-silver flex flex-col items-center justify-center text-nexcent-gray gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-nexcent-green" />
-        <span className="text-xs uppercase font-bold tracking-wider">Loading Nexcent LLD Studio...</span>
+      <div className="h-screen bg-[#1a1a1a] flex flex-col items-center justify-center text-slate-300 gap-3 font-sans">
+        <Loader2 className="w-8 h-8 animate-spin text-[#2cbb5d]" />
+        <span className="text-xs uppercase font-bold tracking-wider text-slate-400">
+          Loading CodeArchitect LLD Studio...
+        </span>
       </div>
     );
   }
 
+  const isDark = theme === "dark";
+
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-nexcent-charcoal flex flex-col font-sans">
-      {/* Nexcent Header */}
+    <div
+      className={`h-screen flex flex-col overflow-hidden font-sans select-none transition-colors ${
+        isDark ? "bg-[#1a1a1a] text-[#eff1f6]" : "bg-slate-100 text-slate-900"
+      }`}
+    >
+      {/* LeetCode Workspace Top Navigation Header */}
       <Header
         problems={problems}
         selectedProblem={selectedProblem}
@@ -143,88 +187,89 @@ export const App: React.FC = () => {
         historyCount={attemptsHistory.length}
         onOpenHistory={() => setIsHistoryModalOpen(true)}
         onOpenRubric={() => setIsRubricModalOpen(true)}
+        onSubmit={() => handleSubmit()}
+        isSubmitting={isSubmitting}
+        theme={theme}
+        onToggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")}
+        onPrevProblem={handlePrevProblem}
+        onNextProblem={handleNextProblem}
+        onRandomProblem={handleRandomProblem}
       />
 
-      {/* Main Practice Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8 space-y-8">
-        {/* Error Alert */}
+      {/* Main Dual-Pane LeetCode Split Workspace */}
+      <main className="flex-1 flex overflow-hidden">
+        {/* Error Alert Overlay */}
         {errorMessage && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl flex items-center justify-between gap-3 text-xs font-semibold shadow-sm">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-rose-900/90 border border-rose-700 text-rose-100 px-4 py-2.5 rounded-xl flex items-center gap-3 text-xs font-semibold shadow-lg backdrop-blur-md">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{errorMessage}</span>
             <button
               onClick={() => setErrorMessage(null)}
-              className="text-xs uppercase font-bold text-rose-700 hover:text-rose-900 cursor-pointer"
+              className="text-xs uppercase font-bold text-rose-300 hover:text-white cursor-pointer ml-2"
             >
               Dismiss
             </button>
           </div>
         )}
 
-        {/* Selected Problem Overview with Hero Layout */}
-        {selectedProblem && <ProblemOverview problem={selectedProblem} />}
+        {/* Left Side: LeetCode Problem Info Hub */}
+        <div
+          className={`w-1/2 h-full border-r overflow-hidden ${
+            isDark ? "border-[#3e3e3e]" : "border-slate-300"
+          }`}
+        >
+          {selectedProblem && (
+            <ProblemOverview
+              problem={selectedProblem}
+              attemptsHistory={attemptsHistory}
+              onSelectAttempt={handleSelectHistoricalAttempt}
+              theme={theme}
+            />
+          )}
+        </div>
 
-        {/* Practice Studio Form */}
-        {selectedProblem && (
-          <PracticeStudio
-            problem={selectedProblem}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            submissionState={submissionState}
-          />
-        )}
+        {/* Right Side: Code & Design Studio + Output Console */}
+        <div className="w-1/2 h-full flex flex-col overflow-hidden">
+          {/* Upper Right: Code & Architecture Studio Editor */}
+          <div className="flex-1 overflow-hidden">
+            {selectedProblem && (
+              <PracticeStudio
+                problem={selectedProblem}
+                onSubmit={handleSubmit}
+                isSubmitting={isSubmitting}
+                submissionState={submissionState}
+                theme={theme}
+              />
+            )}
+          </div>
 
-        {/* Evaluation Feedback View */}
-        <div ref={feedbackRef}>
+          {/* Lower Right: Collapsible Test Results & Evaluation Console */}
           {activeSubmission?.evaluation && (
             <FeedbackView
               evaluation={activeSubmission.evaluation}
               onIterate={handleStartNewIteration}
               nextIterationNumber={(activeAttempt?.iteration || 1) + 1}
+              theme={theme}
             />
           )}
         </div>
       </main>
 
-      {/* Nexcent Footer */}
-      <footer className="border-t border-nexcent-border bg-nexcent-charcoal text-white px-6 py-10">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <svg viewBox="0 0 36 36" fill="none" className="w-7 h-7">
-              <polygon points="18,3 32,27 4,27" fill="#4CAF4F" />
-              <polygon points="18,3 32,27 18,27" fill="#388E3C" opacity="0.9" />
-              <polygon points="18,3 4,27 18,17" fill="#66BB6A" opacity="0.8" />
-              <polygon points="18,17 32,27 18,27" fill="#2E7D32" opacity="0.85" />
-            </svg>
-            <span className="font-extrabold text-lg text-white">Nexcent</span>
-            <span className="text-slate-500">|</span>
-            <span className="text-xs text-slate-300 font-medium">Low-Level Design Practice Platform</span>
-          </div>
-          <p className="text-slate-400 text-xs font-normal">
-            Copyright © 2026 Nexcent LLD. All rights reserved.
-          </p>
-        </div>
-      </footer>
-
       {/* Modals */}
-      {selectedProblem && (
-        <>
-          <AttemptHistoryModal
-            isOpen={isHistoryModalOpen}
-            onClose={() => setIsHistoryModalOpen(false)}
-            attempts={attemptsHistory}
-            onSelectAttempt={handleSelectHistoricalAttempt}
-            currentAttemptId={activeAttempt?.id}
-          />
+      <AttemptHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        attempts={attemptsHistory}
+        onSelectAttempt={handleSelectHistoricalAttempt}
+        currentAttemptId={activeAttempt?.id}
+      />
 
-          <RubricModal
-            isOpen={isRubricModalOpen}
-            onClose={() => setIsRubricModalOpen(false)}
-            rubric={selectedProblem.rubric}
-          />
-        </>
+      {selectedProblem && (
+        <RubricModal
+          isOpen={isRubricModalOpen}
+          onClose={() => setIsRubricModalOpen(false)}
+          rubric={selectedProblem.rubric}
+        />
       )}
     </div>
   );

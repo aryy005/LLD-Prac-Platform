@@ -1,198 +1,259 @@
-import React from "react";
+import React, { useState } from "react";
 import { Evaluation } from "../types/index.js";
 import {
-  Award,
   CheckCircle2,
-  AlertCircle,
-  Lightbulb,
-  Search,
-  ArrowRight,
-  Cpu,
-  RefreshCw,
-  TrendingUp,
-  Sparkles
+  AlertTriangle,
+  Sparkles,
+  ChevronUp,
+  ChevronDown,
+  Quote,
+  Zap,
+  RotateCw
 } from "lucide-react";
 
 interface FeedbackViewProps {
   evaluation: Evaluation;
   onIterate: () => void;
   nextIterationNumber: number;
+  theme?: "dark" | "light";
 }
 
 export const FeedbackView: React.FC<FeedbackViewProps> = ({
   evaluation,
   onIterate,
-  nextIterationNumber
+  nextIterationNumber,
+  theme = "dark"
 }) => {
-  const { report, totalScore, maxScore, scorePercentage } = evaluation;
+  const [activeTab, setActiveTab] = useState<"feedback" | "breakdown" | "evidence">("feedback");
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const isDark = theme === "dark";
 
-  const getScoreColor = (score: number) => {
-    if (score >= 4) return "text-nexcent-green-dark bg-nexcent-green-light border-nexcent-green/40";
-    if (score === 3) return "text-amber-800 bg-amber-50 border-amber-300";
-    return "text-rose-700 bg-rose-50 border-rose-300";
-  };
+  const score = evaluation.scorePercentage ?? 0;
+  const isPassed = score >= 70;
 
   return (
-    <div className="bg-white border border-nexcent-border rounded-2xl overflow-hidden shadow-sm space-y-7 p-8 sm:p-10">
-      {/* Top Banner: Score & Architectural Synthesis */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-nexcent-border">
-        <div className="space-y-2 max-w-2xl">
+    <div
+      className={`border-t flex flex-col transition-all shrink-0 ${
+        isDark ? "bg-[#1f1f1f] border-[#3e3e3e] text-[#eff1f6]" : "bg-slate-50 border-slate-200 text-slate-800"
+      }`}
+    >
+      {/* Console Header Toolbar */}
+      <div
+        className={`px-4 py-2 flex items-center justify-between shrink-0 select-none border-b ${
+          isDark ? "bg-[#282828] border-[#3e3e3e]" : "bg-slate-200 border-slate-300"
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          {/* Console Title & Status Badge */}
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase px-3 py-1 rounded-full bg-nexcent-green-light text-nexcent-green border border-nexcent-green/25 tracking-wider flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-nexcent-green" />
-              {report.evaluatorName}
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Evaluation Output Console
             </span>
-            <span className="text-xs font-medium text-nexcent-gray">
-              Evaluated {new Date(evaluation.evaluatedAt).toLocaleTimeString()}
-            </span>
-          </div>
-
-          <h3 className="text-2xl sm:text-3xl font-extrabold text-nexcent-charcoal tracking-tight">
-            Evaluation Report & Architectural Feedback
-          </h3>
-
-          <p className="text-sm text-nexcent-gray leading-relaxed font-normal">
-            {report.overallSummary}
-          </p>
-        </div>
-
-        {/* Nexcent Score Card */}
-        <div className="flex items-center gap-5 bg-nexcent-silver border border-nexcent-border p-5 rounded-xl self-stretch md:self-auto justify-between md:justify-start">
-          <div>
-            <div className="text-[11px] uppercase tracking-wider font-bold text-nexcent-gray">
-              Rubric Total
-            </div>
-            <div className="text-3xl font-black text-nexcent-charcoal tracking-tight">
-              {totalScore} <span className="text-nexcent-gray text-sm font-medium">/ {maxScore}</span>
-            </div>
-          </div>
-
-          <div className="w-16 h-16 rounded-xl bg-nexcent-green flex flex-col items-center justify-center shadow-md shadow-nexcent-green/25 text-white font-black text-lg">
-            {scorePercentage}%
-            <span className="text-[9px] font-bold uppercase opacity-90 tracking-wider">Score</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Strengths & Next Refactorings Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Key Strengths */}
-        <div className="bg-nexcent-green-light/60 border border-nexcent-green/30 rounded-xl p-5 space-y-2.5">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-nexcent-green-dark">
-            <CheckCircle2 className="w-4 h-4 text-nexcent-green" />
-            Key Architectural Strengths
-          </div>
-          <ul className="space-y-2 text-xs text-nexcent-charcoal font-medium">
-            {report.keyStrengths.map((str, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                <span className="text-nexcent-green font-bold mt-0.5">•</span>
-                <span>{str}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Priority Refactorings */}
-        <div className="bg-nexcent-silver border border-nexcent-border rounded-xl p-5 space-y-2.5">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-nexcent-charcoal">
-            <TrendingUp className="w-4 h-4 text-nexcent-green" />
-            Priority Refactorings for Next Attempt
-          </div>
-          <ul className="space-y-2 text-xs text-nexcent-charcoal font-medium">
-            {report.priorityImprovements.map((imp, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                <span className="text-nexcent-charcoal font-bold mt-0.5">•</span>
-                <span>{imp}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Dimensional Rubric Breakdown */}
-      <div className="space-y-4">
-        <h4 className="text-lg font-bold text-nexcent-charcoal">
-          Dimensional Rubric Breakdown
-        </h4>
-
-        <div className="space-y-3.5">
-          {report.items.map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-nexcent-silver/60 border border-nexcent-border rounded-xl p-5 space-y-3 hover:border-slate-300 transition-colors"
+            <span
+              className={`text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1 ${
+                isPassed
+                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                  : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+              }`}
             >
-              {/* Criterion Header */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`px-2.5 py-0.5 rounded text-xs font-bold border ${getScoreColor(
-                      item.score
-                    )}`}
-                  >
-                    {item.score} / 5
-                  </span>
-                  <h5 className="text-sm font-bold text-nexcent-charcoal">{item.criterionName}</h5>
-                </div>
+              {isPassed ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+              <span>{isPassed ? "PASS" : "REFACTOR RECOMMENDED"}</span>
+            </span>
 
-                <span className="text-xs font-mono font-medium text-nexcent-gray">
-                  Confidence: {Math.round(item.confidence * 100)}%
-                </span>
+            {/* Score Pill */}
+            <span className="text-xs font-black text-[#2cbb5d] px-2 py-0.5 rounded bg-[#2cbb5d]/10 border border-[#2cbb5d]/20">
+              Score: {score}%
+            </span>
+          </div>
+
+          {/* Console Navigation Tabs */}
+          {!isCollapsed && (
+            <div className="flex items-center gap-1 ml-4 border-l border-[#3e3e3e]/40 pl-3">
+              <button
+                onClick={() => setActiveTab("feedback")}
+                className={`px-2.5 py-1 text-xs font-semibold rounded transition-colors ${
+                  activeTab === "feedback"
+                    ? isDark
+                      ? "bg-[#1a1a1a] text-[#2cbb5d]"
+                      : "bg-white text-emerald-700 shadow-sm"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                Summary & Suggestions
+              </button>
+
+              <button
+                onClick={() => setActiveTab("breakdown")}
+                className={`px-2.5 py-1 text-xs font-semibold rounded transition-colors ${
+                  activeTab === "breakdown"
+                    ? isDark
+                      ? "bg-[#1a1a1a] text-[#2cbb5d]"
+                      : "bg-white text-emerald-700 shadow-sm"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                Rubric Criteria ({evaluation.report?.items?.length || 0})
+              </button>
+
+              <button
+                onClick={() => setActiveTab("evidence")}
+                className={`px-2.5 py-1 text-xs font-semibold rounded transition-colors ${
+                  activeTab === "evidence"
+                    ? isDark
+                      ? "bg-[#1a1a1a] text-[#2cbb5d]"
+                      : "bg-white text-emerald-700 shadow-sm"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                Evidence Breakdown
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Right Controls & Next Iteration CTA */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onIterate}
+            className="px-3 py-1 rounded bg-[#2cbb5d] hover:bg-[#26a350] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+            <span>Refactor (Attempt #{nextIterationNumber})</span>
+          </button>
+
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`p-1 rounded transition-colors ${
+              isDark ? "hover:bg-[#3e3e3e] text-slate-400" : "hover:bg-slate-300 text-slate-600"
+            }`}
+            title={isCollapsed ? "Expand Console" : "Collapse Console"}
+          >
+            {isCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Console Content Body */}
+      {!isCollapsed && (
+        <div className="p-4 max-h-[260px] overflow-y-auto space-y-4">
+          {/* TAB 1: SUMMARY & SUGGESTIONS */}
+          {activeTab === "feedback" && (
+            <div className="space-y-3 text-xs">
+              {/* Executive Summary */}
+              <div
+                className={`p-3.5 rounded-xl border leading-relaxed ${
+                  isDark ? "bg-[#1a1a1a] border-[#3e3e3e] text-slate-300" : "bg-white border-slate-200 text-slate-700"
+                }`}
+              >
+                <div className="font-bold text-amber-400 mb-1 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Evaluator Summary ({evaluation.report.evaluatorName})</span>
+                </div>
+                <span>{evaluation.report.overallSummary}</span>
               </div>
 
-              {/* Evidence Citation */}
-              <div className="bg-white rounded-lg p-3.5 border border-nexcent-border text-xs shadow-sm">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold text-nexcent-green uppercase tracking-wider mb-1">
-                  <Search className="w-3.5 h-3.5" />
-                  Evidence in Candidate Solution
-                </div>
-                <p className="text-nexcent-charcoal italic font-mono text-[12px] leading-relaxed">
-                  "{item.evidence}"
-                </p>
-              </div>
-
-              {/* Concern & Suggestion */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
-                <div className="bg-rose-50/70 border border-rose-200 rounded-lg p-3.5">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-rose-700 uppercase tracking-wider mb-1">
-                    <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                    Architectural Concern
+              {/* Strengths & Improvements */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div
+                  className={`p-3 rounded-xl border space-y-1.5 ${
+                    isDark ? "bg-[#1a1a1a] border-[#3e3e3e]" : "bg-white border-slate-200"
+                  }`}
+                >
+                  <div className="font-bold text-emerald-400 flex items-center gap-1.5 text-xs">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Key Strengths</span>
                   </div>
-                  <p className="text-slate-700 leading-relaxed">{item.concern}</p>
+                  <ul className="space-y-1 text-[11px] text-slate-300">
+                    {evaluation.report.keyStrengths.map((str: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-emerald-400">•</span>
+                        <span>{str}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <div className="bg-emerald-50/70 border border-emerald-200 rounded-lg p-3.5">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-nexcent-green-dark uppercase tracking-wider mb-1">
-                    <Lightbulb className="w-3.5 h-3.5 text-nexcent-green" />
-                    Refactoring Suggestion
+                <div
+                  className={`p-3 rounded-xl border space-y-1.5 ${
+                    isDark ? "bg-[#1a1a1a] border-[#3e3e3e]" : "bg-white border-slate-200"
+                  }`}
+                >
+                  <div className="font-bold text-amber-400 flex items-center gap-1.5 text-xs">
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>Priority Improvements</span>
                   </div>
-                  <p className="text-slate-700 leading-relaxed">{item.suggestion}</p>
+                  <ul className="space-y-1 text-[11px] text-slate-300">
+                    {evaluation.report.priorityImprovements.map((imp: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-amber-400">•</span>
+                        <span>{imp}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+          )}
 
-      {/* Practice Loop CTA */}
-      <div className="bg-nexcent-silver border border-nexcent-border rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-5">
-        <div className="space-y-1 text-center sm:text-left">
-          <div className="text-sm font-bold text-nexcent-charcoal flex items-center justify-center sm:justify-start gap-2">
-            <RefreshCw className="w-4 h-4 text-nexcent-green" />
-            Complete the Learning Loop
-          </div>
-          <p className="text-xs text-nexcent-gray font-normal">
-            Apply the suggested refactorings to boost your scores in Attempt #{nextIterationNumber}!
-          </p>
-        </div>
+          {/* TAB 2: RUBRIC CRITERIA BREAKDOWN */}
+          {activeTab === "breakdown" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              {evaluation.report.items.map((item, idx: number) => {
+                const scorePct = (item.score / 5) * 100;
+                return (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-xl border space-y-1.5 ${
+                      isDark ? "bg-[#1a1a1a] border-[#3e3e3e]" : "bg-white border-slate-200"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-200 text-[11px] truncate max-w-[180px]">
+                        {item.criterionName}
+                      </span>
+                      <span className="font-extrabold text-[#2cbb5d]">{item.score}/5</span>
+                    </div>
 
-        <button
-          onClick={onIterate}
-          className="px-6 py-2.5 bg-nexcent-green hover:bg-nexcent-green-dark text-white rounded-md text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-sm shadow-nexcent-green/20 transition-all cursor-pointer whitespace-nowrap"
-        >
-          <span>Start Attempt #{nextIterationNumber}</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
+                    <div className="w-full h-1.5 rounded-full bg-[#3e3e3e] overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#2cbb5d] transition-all duration-500"
+                        style={{ width: `${scorePct}%` }}
+                      />
+                    </div>
+
+                    <div className={`text-[10px] space-y-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                      {item.concern && <div><strong className="text-amber-400">Concern:</strong> {item.concern}</div>}
+                      {item.suggestion && <div><strong className="text-[#2cbb5d]">Suggestion:</strong> {item.suggestion}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* TAB 3: EVIDENCE CITATIONS */}
+          {activeTab === "evidence" && (
+            <div className="space-y-2 text-xs">
+              {evaluation.report.items.map((item, idx: number) => (
+                <div
+                  key={idx}
+                  className={`p-3 rounded-xl border flex items-start gap-2.5 ${
+                    isDark ? "bg-[#1a1a1a] border-[#3e3e3e]" : "bg-white border-slate-200"
+                  }`}
+                >
+                  <Quote className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="font-bold text-amber-400 text-[11px]">{item.criterionName} ({item.dimension})</div>
+                    <div className={`text-[11px] ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+                      <strong>Evidence Cited:</strong> "{item.evidence}"
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

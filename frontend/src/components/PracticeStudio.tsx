@@ -8,9 +8,10 @@ import {
   Plus,
   Trash2,
   Sparkles,
-  Send,
-  CheckCircle2,
-  Loader2
+  RotateCcw,
+  Code,
+  Layers,
+  ChevronDown
 } from "lucide-react";
 
 interface PracticeStudioProps {
@@ -18,13 +19,15 @@ interface PracticeStudioProps {
   onSubmit: (payload: StarterTemplate) => Promise<void>;
   isSubmitting: boolean;
   submissionState: "IDLE" | "SUBMITTING" | "EVALUATING" | "SUCCESS" | "ERROR";
+  theme?: "dark" | "light";
 }
 
 export const PracticeStudio: React.FC<PracticeStudioProps> = ({
   problem,
   onSubmit,
   isSubmitting,
-  submissionState
+  submissionState,
+  theme = "dark"
 }) => {
   const [activeTab, setActiveTab] = useState<"assumptions" | "entities" | "patterns" | "diagram">("assumptions");
 
@@ -32,6 +35,8 @@ export const PracticeStudio: React.FC<PracticeStudioProps> = ({
   const [entities, setEntities] = useState<ClassDefinition[]>([]);
   const [patterns, setPatterns] = useState<PatternJustification[]>([]);
   const [diagramOrCode, setDiagramOrCode] = useState("");
+
+  const isDark = theme === "dark";
 
   useEffect(() => {
     loadStarter();
@@ -99,209 +104,237 @@ export const PracticeStudio: React.FC<PracticeStudioProps> = ({
     setPatterns(next);
   };
 
-  const handleSubmit = async () => {
-    await onSubmit({
-      requirementsAndAssumptions: assumptions,
-      entitiesAndInterfaces: entities,
-      patternsAndTradeoffs: patterns,
-      diagramOrCode
-    });
-  };
-
   return (
-    <div className="bg-white border border-nexcent-border rounded-2xl overflow-hidden shadow-sm flex flex-col">
-      {/* Studio Header Toolbar */}
-      <div className="bg-white border-b border-nexcent-border px-6 py-3 flex flex-wrap items-center justify-between gap-4">
-        {/* Underlined Navigation Tabs */}
-        <div className="flex items-center gap-1 border-b sm:border-b-0 border-slate-100">
+    <div
+      className={`h-full flex flex-col overflow-hidden transition-colors ${
+        isDark ? "bg-[#282828] text-[#eff1f6]" : "bg-white text-slate-800"
+      }`}
+    >
+      {/* Studio Header Toolbar Tabs */}
+      <div
+        className={`flex items-center justify-between border-b px-3 shrink-0 select-none ${
+          isDark ? "border-[#3e3e3e] bg-[#222222]" : "border-slate-200 bg-slate-100"
+        }`}
+      >
+        {/* Editor Tabs */}
+        <div className="flex items-center gap-1">
           <button
             onClick={() => setActiveTab("assumptions")}
-            className={`px-4 py-2.5 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
+            className={`px-3 py-2 text-xs font-semibold border-b-2 flex items-center gap-1.5 transition-colors ${
               activeTab === "assumptions"
-                ? "border-nexcent-green text-nexcent-green"
-                : "border-transparent text-nexcent-gray hover:text-nexcent-charcoal"
+                ? "border-[#2cbb5d] text-[#2cbb5d] font-bold"
+                : isDark
+                ? "border-transparent text-slate-400 hover:text-slate-200"
+                : "border-transparent text-slate-600 hover:text-slate-900"
             }`}
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="w-3.5 h-3.5" />
             <span>Scope & Assumptions</span>
           </button>
 
           <button
             onClick={() => setActiveTab("entities")}
-            className={`px-4 py-2.5 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
+            className={`px-3 py-2 text-xs font-semibold border-b-2 flex items-center gap-1.5 transition-colors ${
               activeTab === "entities"
-                ? "border-nexcent-green text-nexcent-green"
-                : "border-transparent text-nexcent-gray hover:text-nexcent-charcoal"
+                ? "border-[#2cbb5d] text-[#2cbb5d] font-bold"
+                : isDark
+                ? "border-transparent text-slate-400 hover:text-slate-200"
+                : "border-transparent text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Boxes className="w-4 h-4" />
+            <Boxes className="w-3.5 h-3.5" />
             <span>Entities & Signatures ({entities.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab("patterns")}
-            className={`px-4 py-2.5 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
+            className={`px-3 py-2 text-xs font-semibold border-b-2 flex items-center gap-1.5 transition-colors ${
               activeTab === "patterns"
-                ? "border-nexcent-green text-nexcent-green"
-                : "border-transparent text-nexcent-gray hover:text-nexcent-charcoal"
+                ? "border-[#2cbb5d] text-[#2cbb5d] font-bold"
+                : isDark
+                ? "border-transparent text-slate-400 hover:text-slate-200"
+                : "border-transparent text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Compass className="w-4 h-4" />
-            <span>Patterns & Trade-offs ({patterns.length})</span>
+            <Compass className="w-3.5 h-3.5" />
+            <span>Patterns ({patterns.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab("diagram")}
-            className={`px-4 py-2.5 text-xs font-bold transition-all border-b-2 flex items-center gap-2 ${
+            className={`px-3 py-2 text-xs font-semibold border-b-2 flex items-center gap-1.5 transition-colors ${
               activeTab === "diagram"
-                ? "border-nexcent-green text-nexcent-green"
-                : "border-transparent text-nexcent-gray hover:text-nexcent-charcoal"
+                ? "border-[#2cbb5d] text-[#2cbb5d] font-bold"
+                : isDark
+                ? "border-transparent text-slate-400 hover:text-slate-200"
+                : "border-transparent text-slate-600 hover:text-slate-900"
             }`}
           >
-            <GitBranch className="w-4 h-4" />
-            <span>Class Diagram</span>
+            <GitBranch className="w-3.5 h-3.5" />
+            <span>Class Diagram / Code</span>
           </button>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2.5">
+        {/* Quick Demo Scaffolding Buttons */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={loadStarter}
-            className="px-3 py-1.5 text-xs font-medium text-nexcent-gray hover:text-nexcent-charcoal bg-nexcent-silver rounded-md border border-nexcent-border transition-colors"
-            title="Reset to starter scaffolding"
+            title="Reset to Starter Scaffolding"
+            className={`px-2.5 py-1 text-[11px] font-medium rounded transition-colors flex items-center gap-1 ${
+              isDark
+                ? "bg-[#1a1a1a] text-slate-300 hover:bg-[#3e3e3e] border border-[#3e3e3e]"
+                : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+            }`}
           >
-            Reset Starter
+            <RotateCcw className="w-3 h-3" />
+            <span>Reset</span>
           </button>
 
           <button
             type="button"
             onClick={loadSample}
-            className="px-3.5 py-1.5 text-xs font-bold text-nexcent-green bg-nexcent-green-light hover:bg-nexcent-green hover:text-white rounded-md border border-nexcent-green/30 flex items-center gap-1.5 transition-all shadow-sm"
-            title="Load golden sample solution for demonstration"
+            title="Load Golden Sample Architecture"
+            className="px-2.5 py-1 text-[11px] font-bold text-[#2cbb5d] bg-[#2cbb5d]/10 hover:bg-[#2cbb5d]/20 rounded border border-[#2cbb5d]/30 flex items-center gap-1 transition-all"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            Load Sample Solution
+            <Sparkles className="w-3 h-3 text-[#2cbb5d]" />
+            <span>Load Sample Architecture</span>
           </button>
         </div>
       </div>
 
-      {/* Tab Panels */}
-      <div className="p-7 min-h-[360px]">
+      {/* Editor Content Area */}
+      <div className="flex-1 overflow-y-auto p-4">
         {/* Tab 1: Scope & Assumptions */}
         {activeTab === "assumptions" && (
-          <div className="space-y-4">
+          <div className="h-full flex flex-col space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <label htmlFor="assumptions-nexcent" className="text-xs font-bold uppercase tracking-wider text-nexcent-charcoal block">
-                  Requirements Understanding & Operational Assumptions
+                <label className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
+                  Requirements & Operational Constraints
                 </label>
-                <p className="text-xs text-nexcent-gray mt-0.5">
-                  State clear concurrency mechanisms, boundary limits, and non-goals before designing classes.
+                <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                  Define functional boundaries, concurrency handling, and explicit non-goals.
                 </p>
               </div>
-              <span className="text-xs font-mono font-medium text-nexcent-gray bg-nexcent-silver px-2.5 py-1 rounded">
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                isDark ? "bg-[#1a1a1a] text-slate-400" : "bg-slate-100 text-slate-600"
+              }`}>
                 {assumptions.length} characters
               </span>
             </div>
 
             <textarea
-              id="assumptions-nexcent"
               value={assumptions}
-              onChange={e => setAssumptions(e.target.value)}
-              rows={12}
-              className="w-full bg-nexcent-silver border border-nexcent-border rounded-xl p-4 text-xs font-mono text-nexcent-charcoal focus:outline-none focus:ring-2 focus:ring-nexcent-green/20 focus:border-nexcent-green transition-all resize-y leading-relaxed"
-              placeholder="e.g. Assumptions:
-1. Multi-level parking lot with motorcycle, compact, and truck bays.
-2. Concurrent entry gates: thread safety addressed via synchronized spot reservation.
-3. Pricing policy separates rates by vehicle category."
+              onChange={(e) => setAssumptions(e.target.value)}
+              className={`flex-1 w-full p-3.5 text-xs font-mono rounded-xl border outline-none leading-relaxed resize-none transition-all ${
+                isDark
+                  ? "bg-[#1a1a1a] border-[#3e3e3e] text-[#eff1f6] focus:border-[#2cbb5d]"
+                  : "bg-slate-50 border-slate-300 text-slate-800 focus:border-emerald-500"
+              }`}
+              rows={14}
+              placeholder="e.g. Assumptions & Scope:
+1. System handles multi-level parking with Motorcycle, Compact, and Truck slots.
+2. Concurrent entry gates synchronize spot reservations using a synchronized allocator.
+3. Pricing policy separates rates per vehicle category using a Strategy Pattern."
             />
           </div>
         )}
 
-        {/* Tab 2: Entities & Interfaces */}
+        {/* Tab 2: Domain Entities & Signatures */}
         {activeTab === "entities" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-nexcent-charcoal">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">
                   Domain Classes, Interfaces & Single Responsibility (SRP)
                 </h4>
-                <p className="text-xs text-nexcent-gray mt-0.5">
-                  Declare cohesive entities and explicit interface abstractions.
+                <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                  Declare domain entities, method contracts, and class relationships.
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={handleAddEntity}
-                className="px-3 py-1.5 bg-nexcent-green hover:bg-nexcent-green-dark text-white rounded-md text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                className="px-2.5 py-1 bg-[#2cbb5d] hover:bg-[#26a350] text-white rounded text-xs font-bold flex items-center gap-1 shadow-sm transition-all"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add Entity
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[520px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {entities.map((entity, idx) => (
-                <div key={idx} className="bg-nexcent-silver border border-nexcent-border rounded-xl p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 flex-1">
+                <div
+                  key={idx}
+                  className={`p-3.5 rounded-xl border space-y-3 ${
+                    isDark ? "bg-[#1f1f1f] border-[#3e3e3e]" : "bg-slate-50 border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <input
+                      type="text"
+                      value={entity.name}
+                      onChange={(e) => handleUpdateEntity(idx, { name: e.target.value })}
+                      className={`font-mono text-xs font-bold px-2 py-1 rounded border outline-none flex-1 ${
+                        isDark ? "bg-[#1a1a1a] border-[#3e3e3e] text-[#2cbb5d]" : "bg-white border-slate-300 text-emerald-600"
+                      }`}
+                      placeholder="Entity / Class Name"
+                    />
+
+                    <label className="flex items-center gap-1 cursor-pointer select-none text-[11px]">
                       <input
-                        type="text"
-                        value={entity.name}
-                        onChange={e => handleUpdateEntity(idx, { name: e.target.value })}
-                        className="bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs font-bold text-nexcent-charcoal focus:outline-none focus:border-nexcent-green w-48 shadow-sm"
-                        placeholder="Entity Name"
+                        type="checkbox"
+                        checked={entity.isInterface}
+                        onChange={(e) => handleUpdateEntity(idx, { isInterface: e.target.checked })}
+                        className="rounded accent-[#2cbb5d]"
                       />
-                      <label className="flex items-center gap-1.5 text-xs font-semibold text-nexcent-gray cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={!!entity.isInterface}
-                          onChange={e => handleUpdateEntity(idx, { isInterface: e.target.checked })}
-                          className="rounded border-slate-300 text-nexcent-green focus:ring-0"
-                        />
-                        <span>Interface</span>
-                      </label>
-                    </div>
+                      <span className={entity.isInterface ? "text-amber-400 font-bold" : "text-slate-400"}>
+                        Interface
+                      </span>
+                    </label>
 
                     <button
                       type="button"
                       onClick={() => handleRemoveEntity(idx)}
-                      className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
-                      title="Delete entity"
+                      className="p-1 text-rose-400 hover:text-rose-600 hover:bg-rose-500/10 rounded transition-colors"
+                      title="Remove entity"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold uppercase text-nexcent-gray block mb-1">
-                      Single Responsibility (SRP)
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
+                      Cohesive Duty (SRP)
                     </label>
-                    <textarea
+                    <input
+                      type="text"
                       value={entity.responsibilities}
-                      onChange={e => handleUpdateEntity(idx, { responsibilities: e.target.value })}
-                      rows={2}
-                      className="w-full bg-white border border-slate-200 rounded-md p-2 text-xs text-nexcent-charcoal focus:outline-none focus:border-nexcent-green leading-relaxed"
-                      placeholder="What single cohesive duty belongs here?"
+                      onChange={(e) => handleUpdateEntity(idx, { responsibilities: e.target.value })}
+                      className={`w-full text-xs px-2 py-1 rounded border outline-none ${
+                        isDark ? "bg-[#1a1a1a] border-[#3e3e3e] text-slate-300" : "bg-white border-slate-300 text-slate-700"
+                      }`}
                     />
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold uppercase text-nexcent-gray block mb-1">
-                      Key Methods (comma separated)
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
+                      Method Signatures (comma separated)
                     </label>
                     <input
                       type="text"
-                      value={(entity.methods || []).join(", ")}
-                      onChange={e =>
+                      value={entity.methods ? entity.methods.join(", ") : ""}
+                      onChange={(e) =>
                         handleUpdateEntity(idx, {
-                          methods: e.target.value.split(",").map(m => m.trim()).filter(Boolean)
+                          methods: e.target.value.split(",").map((m) => m.trim())
                         })
                       }
-                      className="w-full bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-mono text-nexcent-charcoal focus:outline-none focus:border-nexcent-green"
-                      placeholder="e.g. parkVehicle(v), unpark(ticket)"
+                      className={`w-full text-xs font-mono px-2 py-1 rounded border outline-none ${
+                        isDark ? "bg-[#1a1a1a] border-[#3e3e3e] text-slate-300" : "bg-white border-slate-300 text-slate-700"
+                      }`}
+                      placeholder="e.g. parkVehicle(v: Vehicle): Ticket, checkout(): float"
                     />
                   </div>
                 </div>
@@ -310,70 +343,85 @@ export const PracticeStudio: React.FC<PracticeStudioProps> = ({
           </div>
         )}
 
-        {/* Tab 3: Patterns & Trade-offs */}
+        {/* Tab 3: Design Patterns & Trade-offs */}
         {activeTab === "patterns" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-nexcent-charcoal">
-                  Design Patterns Applied & Architectural Rationale
+                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  Design Pattern Justifications & Extensibility
                 </h4>
-                <p className="text-xs text-nexcent-gray mt-0.5">
-                  Explain why each pattern was chosen and how it supports open/closed extensibility.
+                <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                  Justify design pattern selections (Strategy, State, Observer, Factory) and trade-offs.
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={handleAddPattern}
-                className="px-3 py-1.5 bg-nexcent-green hover:bg-nexcent-green-dark text-white rounded-md text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                className="px-2.5 py-1 bg-[#2cbb5d] hover:bg-[#26a350] text-white rounded text-xs font-bold flex items-center gap-1 shadow-sm transition-all"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add Pattern
               </button>
             </div>
 
-            <div className="space-y-3.5 max-h-[520px] overflow-y-auto pr-1">
-              {patterns.map((pattern, idx) => (
-                <div key={idx} className="bg-nexcent-silver border border-nexcent-border rounded-xl p-4 space-y-2.5">
-                  <div className="flex items-center justify-between gap-3">
+            <div className="space-y-3">
+              {patterns.map((pat, idx) => (
+                <div
+                  key={idx}
+                  className={`p-3.5 rounded-xl border space-y-2.5 ${
+                    isDark ? "bg-[#1f1f1f] border-[#3e3e3e]" : "bg-slate-50 border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
                     <input
                       type="text"
-                      value={pattern.patternName}
-                      onChange={e => handleUpdatePattern(idx, { patternName: e.target.value })}
-                      className="bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs font-bold text-nexcent-green focus:outline-none focus:border-nexcent-green w-52 shadow-sm"
+                      value={pat.patternName}
+                      onChange={(e) => handleUpdatePattern(idx, { patternName: e.target.value })}
+                      className={`font-mono text-xs font-bold px-2 py-1 rounded border outline-none flex-1 ${
+                        isDark ? "bg-[#1a1a1a] border-[#3e3e3e] text-amber-400" : "bg-white border-slate-300 text-amber-600"
+                      }`}
                       placeholder="e.g. Strategy Pattern"
-                    />
-
-                    <input
-                      type="text"
-                      value={pattern.whereApplied}
-                      onChange={e => handleUpdatePattern(idx, { whereApplied: e.target.value })}
-                      className="flex-1 bg-white border border-slate-200 rounded-md px-2.5 py-1 text-xs text-nexcent-charcoal focus:outline-none focus:border-nexcent-green"
-                      placeholder="Where applied (e.g. SpotAssignmentStrategy, PricingEngine)"
                     />
 
                     <button
                       type="button"
                       onClick={() => handleRemovePattern(idx)}
-                      className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
-                      title="Delete pattern"
+                      className="p-1 text-rose-400 hover:text-rose-600 hover:bg-rose-500/10 rounded transition-colors"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-bold uppercase text-nexcent-gray block mb-1">
-                      Architectural Rationale
-                    </label>
-                    <textarea
-                      value={pattern.rationale}
-                      onChange={e => handleUpdatePattern(idx, { rationale: e.target.value })}
-                      rows={2}
-                      className="w-full bg-white border border-slate-200 rounded-md p-2 text-xs text-nexcent-charcoal focus:outline-none focus:border-nexcent-green leading-relaxed"
-                      placeholder="Explain what change this pattern isolates from core classes."
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
+                        Where Applied
+                      </label>
+                      <input
+                        type="text"
+                        value={pat.whereApplied}
+                        onChange={(e) => handleUpdatePattern(idx, { whereApplied: e.target.value })}
+                        className={`w-full text-xs px-2 py-1 rounded border outline-none ${
+                          isDark ? "bg-[#1a1a1a] border-[#3e3e3e] text-slate-300" : "bg-white border-slate-300 text-slate-700"
+                        }`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
+                        Extensibility Rationale & Trade-off
+                      </label>
+                      <input
+                        type="text"
+                        value={pat.rationale}
+                        onChange={(e) => handleUpdatePattern(idx, { rationale: e.target.value })}
+                        className={`w-full text-xs px-2 py-1 rounded border outline-none ${
+                          isDark ? "bg-[#1a1a1a] border-[#3e3e3e] text-slate-300" : "bg-white border-slate-300 text-slate-700"
+                        }`}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -381,76 +429,41 @@ export const PracticeStudio: React.FC<PracticeStudioProps> = ({
           </div>
         )}
 
-        {/* Tab 4: Diagram / Code */}
+        {/* Tab 4: Class Diagram & Code */}
         {activeTab === "diagram" && (
-          <div className="space-y-4">
+          <div className="h-full flex flex-col space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <label htmlFor="diagram-input-nexcent" className="text-xs font-bold uppercase tracking-wider text-nexcent-charcoal block">
-                  Mermaid Class Diagram or Implementation Skeleton
+                <label className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
+                  Mermaid Class Diagram / Code Skeleton
                 </label>
-                <p className="text-xs text-nexcent-gray mt-0.5">
-                  Visual relationship mapping (Change Test A support).
+                <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                  Express class interactions in Mermaid notation or TypeScript/Java code skeletons.
                 </p>
               </div>
-              <span className="text-[11px] font-bold text-nexcent-green bg-nexcent-green-light px-2.5 py-1 rounded border border-nexcent-green/30">
-                Polymorphic Payload
-              </span>
             </div>
 
             <textarea
-              id="diagram-input-nexcent"
               value={diagramOrCode}
-              onChange={e => setDiagramOrCode(e.target.value)}
-              rows={12}
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-emerald-300 focus:outline-none focus:ring-2 focus:ring-nexcent-green/20 transition-all resize-y leading-relaxed"
+              onChange={(e) => setDiagramOrCode(e.target.value)}
+              className={`flex-1 w-full p-3.5 text-xs font-mono rounded-xl border outline-none leading-relaxed resize-none transition-all ${
+                isDark
+                  ? "bg-[#1a1a1a] border-[#3e3e3e] text-[#eff1f6] focus:border-[#2cbb5d]"
+                  : "bg-slate-50 border-slate-300 text-slate-800 focus:border-emerald-500"
+              }`}
+              rows={14}
               placeholder="classDiagram
-    ParkingLot *-- ParkingFloor
-    ParkingFloor *-- ParkingSpot
-    ParkingLot --> SpotStrategy"
+    class ParkingLot {
+        +parkVehicle(v: Vehicle): Ticket
+    }
+    class PricingStrategy {
+        <<interface>>
+        +calculateFee(hours: float): float
+    }
+    ParkingLot --> PricingStrategy"
             />
           </div>
         )}
-      </div>
-
-      {/* Footer Bar */}
-      <div className="bg-nexcent-silver border-t border-nexcent-border px-7 py-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-xs font-medium text-nexcent-gray">
-          {submissionState === "EVALUATING" && (
-            <div className="flex items-center gap-2 text-nexcent-green font-bold animate-pulse">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Running Composite Rubric Evaluator...</span>
-            </div>
-          )}
-          {submissionState === "SUCCESS" && (
-            <div className="flex items-center gap-1.5 text-nexcent-green font-bold">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Evaluation complete! Detailed rubric report ready below.</span>
-            </div>
-          )}
-          {submissionState === "IDLE" && (
-            <span>Ready for evaluation against 5-dimensional rubric.</span>
-          )}
-        </div>
-
-        {/* Nexcent Green Submit Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className="px-6 py-2.5 rounded-md bg-nexcent-green hover:bg-nexcent-green-dark disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2.5 shadow-sm shadow-nexcent-green/25 transition-all cursor-pointer"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Evaluating...</span>
-            </>
-          ) : (
-            <>
-              <Send className="w-3.5 h-3.5" />
-              <span>Submit for Evaluation</span>
-            </>
-          )}
-        </button>
       </div>
     </div>
   );

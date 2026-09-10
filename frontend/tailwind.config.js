@@ -11,6 +11,19 @@ export default {
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
+        leetcode: {
+          dark: '#1a1a1a',
+          panel: '#282828',
+          card: '#1f1f1f',
+          border: '#3e3e3e',
+          text: '#eff1f6',
+          muted: '#8a8a8a',
+          green: '#2cbb5d',
+          'green-hover': '#26a350',
+          yellow: '#ffc01e',
+          red: '#ff375f',
+          cyan: '#00b8a3',
+        },
         nexcent: {
           green: '#4CAF4F',
           'green-dark': '#388E3C',

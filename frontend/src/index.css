@@ -4,30 +4,30 @@
 
 @layer base {
   body {
-    background-color: #F5F7FA;
-    color: #263238;
+    background-color: #1a1a1a;
+    color: #eff1f6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
 ::selection {
-  background-color: #4CAF4F;
+  background-color: #2cbb5d;
   color: #FFFFFF;
 }
 
-/* Custom scrollbars for clean Nexcent style */
+/* Custom scrollbars for clean LeetCode style */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #3e3e3e;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #555555;
 }
